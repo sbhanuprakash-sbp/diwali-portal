@@ -1,0 +1,30 @@
+# Render "Blueprint": creates the API service and a Postgres database in one go.
+# New > Blueprint > pick your GitHub repo. Render then asks you for the values marked sync:false.
+services:
+  - type: web
+    name: diwali-portal-api
+    runtime: python
+    plan: free
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app --workers 1 --threads 4 --timeout 60
+    healthCheckPath: /api/health
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: diwali-db
+          property: connectionString
+      - key: JWT_SECRET            # Render generates a long random value for you
+        generateValue: true
+      - key: ADMIN_USERNAME        # you type this in the Render dashboard
+        sync: false
+      - key: ADMIN_PASSWORD_HASH   # bcrypt hash of your admin password (see README)
+        sync: false
+      - key: FRONTEND_ORIGIN       # your Netlify address, e.g. https://my-diwali.netlify.app
+        sync: false
+      - key: FORMSPREE_URL         # your Formspree form URL (replies are also emailed to you)
+        sync: false
+
+databases:
+  - name: diwali-db
+    plan: free
